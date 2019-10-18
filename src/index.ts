@@ -26,7 +26,7 @@ interface ActionSettings {
 const readSettings = ((): ActionSettings => {
     return {
         configFileName: getInput('tslint_config'),
-        ghToken: getInput('gh_token'),
+        ghToken: getInput('token'),
     };
 });
 
@@ -59,7 +59,7 @@ const createCheck = (async (): Promise<Octokit.Response<Octokit.ChecksCreateResp
         head_sha: (ctx.payload.pull_request as any).head.sha,
         status: 'in_progress',
     });
-})
+});
 
 const updateCheck = (async (id: number, results: LintResult) => {
     const annotations = results.failures.map((failure) => {
@@ -71,7 +71,7 @@ const updateCheck = (async (id: number, results: LintResult) => {
             end_column: failure.getStartPosition().getLineAndCharacter().character,
             annotation_level: SeverityAnnotationLevelMap.get(failure.getRuleSeverity()) || "notice",
             message: `[${failure.getRuleName()}] ${failure.getFailure()}`
-        }
+        };
 
         return annotation;
     });
