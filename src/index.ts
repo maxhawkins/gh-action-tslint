@@ -122,3 +122,5 @@ run().then(() => {
 }).catch((ex) => {
     console.log(ex);
 });
+
+console.log('testing');
