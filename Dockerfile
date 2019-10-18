@@ -4,7 +4,6 @@ MAINTAINER Amir Omidi "amir@aaomidi.com"
 WORKDIR /var/task
 
 COPY . ./
-RUN ls 
 RUN yarn install
 RUN yarn build
 
