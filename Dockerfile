@@ -7,6 +7,4 @@ COPY . ./
 RUN yarn install
 RUN yarn build
 
-COPY dist/index.js .
-
 ENTRYPOINT ["run.sh"]
