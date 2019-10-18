@@ -8,4 +8,4 @@ RUN yarn install
 RUN yarn build
 RUN chmod +x run.sh
 
-ENTRYPOINT ["run.sh"]
+ENTRYPOINT ["/var/task/run.sh"]

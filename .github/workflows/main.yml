@@ -11,5 +11,5 @@ jobs:
       - name: Lint
         uses: aaomidi/gh-action-tslint@master
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tslint_config: 'tslint.json'

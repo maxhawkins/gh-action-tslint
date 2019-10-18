@@ -34,6 +34,8 @@ const octokit = new GitHub(readSettings().ghToken);
 
 const getChangedFiles = (async (): Promise<string[] | undefined> => {
     const pullRequest = ctx.payload.pull_request;
+    console.log(ctx);
+    console.log(pullRequest);
     if (!pullRequest) {
         throw new Error('This action is for PRs only');
     }
@@ -41,8 +43,10 @@ const getChangedFiles = (async (): Promise<string[] | undefined> => {
     response = await octokit.pulls.listFiles({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
-        pull_number: pullRequest.pull_number
-    })
+        pull_number: pullRequest.number
+    });
+
+    console.log(response.data);
 
     return response.data.map((f) => path.resolve(f.filename));
 });
