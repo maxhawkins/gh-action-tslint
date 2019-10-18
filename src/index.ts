@@ -26,7 +26,7 @@ interface ActionSettings {
 const readSettings = ((): ActionSettings => {
     return {
         configFileName: getInput('tslint_config'),
-        ghToken: getInput('gh_token'),
+        ghToken: getInput('token'),
     };
 });
 
