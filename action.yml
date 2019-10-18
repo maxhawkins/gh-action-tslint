@@ -8,7 +8,7 @@ inputs:
   tslint_config:
     description: 'TSLint Config'
     required: true
-run:
+runs:
   using: 'docker'
   image: 'Dockerfile'
 branding:
