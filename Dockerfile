@@ -3,8 +3,9 @@ MAINTAINER Amir Omidi "amir@aaomidi.com"
 
 WORKDIR /var/task
 
-COPY run.sh package.json yarn.lock tsconfig.json src ./
-
+COPY run.sh package.json yarn.lock tsconfig.json src/ ./
+RUN ls 
+RUN ls src/
 RUN yarn install
 RUN yarn build
 
