@@ -1,15 +1,11 @@
 FROM node:lts-alpine
 MAINTAINER Amir Omidi "amir@aaomidi.com"
 
-RUN mkdir -p /var/task
-
 WORKDIR /var/task
-COPY package.json yarn.lock /var/task
 
+COPY . ./
 RUN yarn install
-
 RUN yarn build
-
-COPY run.sh dist/index.js /var/task
+RUN chmod +x run.sh
 
 ENTRYPOINT ["run.sh"]
