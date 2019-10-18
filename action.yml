@@ -1,0 +1,16 @@
+name: 'Strict TSLint'
+description: 'Checks tslint based on changed files'
+author: 'Amir Omidi'
+inputs:
+  token:
+    description: 'GitHub Token'
+    required: true
+  tslint_config:
+    description: 'TSLint Config'
+    required: true
+runes:
+  using: 'docker'
+  image: 'Dockerfile'
+branding:
+  icon: 'heart'
+  color: 'green'
