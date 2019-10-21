@@ -48,8 +48,6 @@ const getChangedFiles = (async (): Promise<string[] | undefined> => {
         pull_number: pullRequest.number
     });
 
-    console.log(response.data);
-
     return response.data.map((f: any) => path.resolve(f.filename));
 });
 
@@ -119,7 +117,8 @@ const updateCheck = (async (id: number, results: LintResult) => {
         }
     });
 
-    octokit.issues.createComment({
+    console.log(bodies);
+    await octokit.issues.createComment({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
         issue_number: pullRequest.number,
@@ -150,7 +149,6 @@ const run = (async () => {
     for (let file of files) {
         const fileContents = await fs.readFile(file, { encoding: 'utf8' });
         linter.lint(file, fileContents, tslintConfiguration);
-        console.log(file);
     }
 
     const results = linter.getResult();
