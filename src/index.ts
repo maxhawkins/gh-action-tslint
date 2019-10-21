@@ -4,6 +4,7 @@ import { getInput } from '@actions/core';
 import { context, GitHub } from '@actions/github';
 import { Linter, ILinterOptions, Configuration, LintResult, RuleSeverity } from 'tslint';
 import Octokit from '@octokit/rest';
+import { fail } from 'assert';
 
 const ctx = context;
 const NAME = 'Strict TSLint';
@@ -82,11 +83,12 @@ const updateCheck = (async (id: number, results: LintResult) => {
             annotation_level: SeverityAnnotationLevelMap.get(failure.getRuleSeverity()) || "notice",
             message: `[${failure.getRuleName()}] ${failure.getFailure()}`
         };
+        const relativePath = path.relative(__dirname, failure.getFileName())
 
-        const body = `Rule: ${failure.getRuleName()}\n
-        File Path: [${failure.getFileName()}](https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${failure.getFileName()}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line})\n
-        Message: ${failure.getFailure()}
-        `
+        const body = `Rule: ${failure.getRuleName()}
+File Path: [${relativePath}](https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line})\n
+Message: ${failure.getFailure()}`
+
         bodies.push(body);
         return annotation;
     });
