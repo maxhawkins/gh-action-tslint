@@ -21,12 +21,14 @@ const linterOptions: ILinterOptions = {
 interface ActionSettings {
     configFileName: string;
     ghToken: string;
+    failOnError: boolean;
 }
 
 const readSettings = ((): ActionSettings => {
     return {
         configFileName: getInput('tslint_config'),
         ghToken: getInput('token'),
+        failOnError: Boolean(getInput('failOnInput')) || false,
     };
 });
 
@@ -48,21 +50,32 @@ const getChangedFiles = (async (): Promise<string[] | undefined> => {
 
     console.log(response.data);
 
-    return response.data.map((f) => path.resolve(f.filename));
+    return response.data.map((f: any) => path.resolve(f.filename));
 });
 
 const createCheck = (async (): Promise<Octokit.Response<Octokit.ChecksCreateResponse>> => {
+    const pullRequest = ctx.payload.pull_request;
+    if (!pullRequest) {
+        throw new Error("pull request was undefined")
+    }
+
     return octokit.checks.create({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
         name: NAME,
-        head_sha: (ctx.payload.pull_request as any).head.sha,
+        head_sha: pullRequest.head.sha,
         status: 'in_progress',
     });
 });
 
 const updateCheck = (async (id: number, results: LintResult) => {
-    const annotations = results.failures.map((failure) => {
+    const pullRequest = ctx.payload.pull_request;
+    if (!pullRequest) {
+        throw new Error("pull request was undefined")
+    }
+    const bodies: string[] = [];
+
+    const annotations = results.failures.map((failure: any) => {
         const annotation: Octokit.ChecksCreateParamsOutputAnnotations = {
             path: failure.getFileName(),
             start_line: failure.getStartPosition().getLineAndCharacter().line,
@@ -73,8 +86,22 @@ const updateCheck = (async (id: number, results: LintResult) => {
             message: `[${failure.getRuleName()}] ${failure.getFailure()}`
         };
 
+        const body = `Rule: ${failure.getRuleName()}\n
+        File Path: [${failure.getFileName()}](https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${failure.getFileName()}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line})\n
+        Message: ${failure.getFailure()}
+        `
+        bodies.push(body);
         return annotation;
     });
+    let conclusion: | "success"
+        | "failure"
+        | "neutral"
+        | "cancelled"
+        | "timed_out"
+        | "action_required" = "success";
+    if (readSettings().failOnError) {
+        conclusion = results.errorCount > 0 ? "failure" : "success";
+    }
 
     await octokit.checks.update({
         owner: ctx.repo.owner,
@@ -82,13 +109,20 @@ const updateCheck = (async (id: number, results: LintResult) => {
         check_run_id: id,
         name: NAME,
         status: 'completed',
-        conclusion: results.errorCount > 0 ? 'failure' : 'success',
+        conclusion,
         output: {
             title: NAME,
             summary: `${results.errorCount} error(s).`,
             annotations,
         }
     });
+
+    octokit.issues.createComment({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        issue_number: pullRequest.pull_number,
+        body: bodies.join('\n'),
+    })
 });
 
 const run = (async () => {
@@ -102,10 +136,10 @@ const run = (async () => {
     const program = Linter.createProgram(settings.configFileName);
     const linter = new Linter(linterOptions, program);
     let files = Linter.getFileNames(program);
-    files = files.map((f) => {
+    files = files.map((f: string) => {
         return path.resolve(f);
     });
-    files = files.filter(f => {
+    files = files.filter((f: string) => {
         return changedFiles.includes(f);
     });
 
