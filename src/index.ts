@@ -36,8 +36,6 @@ const octokit = new GitHub(readSettings().ghToken);
 
 const getChangedFiles = (async (): Promise<string[] | undefined> => {
     const pullRequest = ctx.payload.pull_request;
-    console.log(ctx);
-    console.log(pullRequest);
     if (!pullRequest) {
         throw new Error('This action is for PRs only');
     }
@@ -73,6 +71,7 @@ const updateCheck = (async (id: number, results: LintResult) => {
     }
     const bodies: string[] = [];
 
+    console.log(results);
     const annotations = results.failures.map((failure: any) => {
         const annotation: Octokit.ChecksCreateParamsOutputAnnotations = {
             path: failure.getFileName(),
