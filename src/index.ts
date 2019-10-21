@@ -83,7 +83,7 @@ const updateCheck = (async (id: number, results: LintResult) => {
             annotation_level: SeverityAnnotationLevelMap.get(failure.getRuleSeverity()) || "notice",
             message: `[${failure.getRuleName()}] ${failure.getFailure()}`
         };
-        const relativePath = path.relative(__dirname, failure.getFileName())
+        const relativePath = failure.getFileName().slice(18);
 
         const body = `Rule: ${failure.getRuleName()}
 File Path: [${relativePath}](https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line})\n
