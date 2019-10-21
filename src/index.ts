@@ -98,9 +98,11 @@ const updateCheck = (async (id: number, results: LintResult) => {
         | "neutral"
         | "cancelled"
         | "timed_out"
-        | "action_required" = "success";
+        | "action_required";
     if (readSettings().failOnError) {
         conclusion = results.errorCount > 0 ? "failure" : "success";
+    } else {
+        conclusion = results.errorCount > 0 ? "neutral" : "success";
     }
 
     await octokit.checks.update({
@@ -120,7 +122,7 @@ const updateCheck = (async (id: number, results: LintResult) => {
     octokit.issues.createComment({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
-        issue_number: pullRequest.pull_number,
+        issue_number: pullRequest.number,
         body: bodies.join('\n'),
     })
 });
