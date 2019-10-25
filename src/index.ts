@@ -88,8 +88,8 @@ const updateCheck = (async (id: number, results: LintResult) => {
         const filePathString = `${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line}`;
         const filePathLink = `https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line}`;
         const body = `Rule: ${failure.getRuleName()}
-    File Path: [${filePathString}](${filePathLink})
-    Message: ${failure.getFailure()}`;
+- File Path: [${filePathString}](${filePathLink})
+- Message: ${failure.getFailure()}`;
 
         bodies.push(body);
         return annotation;
