@@ -120,13 +120,16 @@ const updateCheck = (async (id: number, results: LintResult) => {
         }
     });
 
-    const body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.\n\n${bodies.join('\n\n')}`;
-    await octokit.issues.createComment({
-        owner: ctx.repo.owner,
-        repo: ctx.repo.repo,
-        issue_number: pullRequest.number,
-        body,
-    });
+    if (bodies.length > 0) {
+        const body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.\n\n${bodies.join('\n\n')}`;
+        await octokit.issues.createComment({
+            owner: ctx.repo.owner,
+            repo: ctx.repo.repo,
+            issue_number: pullRequest.number,
+            body,
+        });
+    }
+
 });
 
 const run = (async () => {
