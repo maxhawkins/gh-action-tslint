@@ -85,9 +85,11 @@ const updateCheck = (async (id: number, results: LintResult) => {
         };
         const relativePath = failure.getFileName().slice(18);
 
+        const filePathString = `${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line}`;
+        const filePathLink = `https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line}`;
         const body = `Rule: ${failure.getRuleName()}
-File Path: [${relativePath}](https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/blob/${pullRequest.head.sha}/${relativePath}#L${failure.getStartPosition().getLineAndCharacter().line}-L${failure.getEndPosition().getLineAndCharacter().line})\n
-Message: ${failure.getFailure()}`
+File Path: [${filePathString}](${filePathLink})
+Message: ${failure.getFailure()}`;
 
         bodies.push(body);
         return annotation;
@@ -118,13 +120,13 @@ Message: ${failure.getFailure()}`
         }
     });
 
-    console.log(bodies);
+    const body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.\n${bodies.join('\n')}`;
     await octokit.issues.createComment({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
         issue_number: pullRequest.number,
-        body: bodies.join('\n'),
-    })
+        body,
+    });
 });
 
 const run = (async () => {
