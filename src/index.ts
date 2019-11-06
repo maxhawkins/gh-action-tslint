@@ -163,7 +163,7 @@ const updateCheck = async (id: number, results: LintResult) => {
 
     const showCount = 5;
 
-    let body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.`;
+    let body = `TSLint found ${annotationCount} errors in files you edited:`;
     body += "\n\n";
     body += bodies.slice(0, showCount).join("\n");
     if (annotationCount > showCount) {
