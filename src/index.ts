@@ -159,7 +159,7 @@ const updateCheck = async (id: number, results: LintResult) => {
   }
 
   if (bodies.length > 0) {
-    const checkURL = `https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/runs/${id})`;
+    const checkURL = `https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/runs/${id}`;
 
     const showCount = 5;
 
