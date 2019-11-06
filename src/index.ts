@@ -74,10 +74,27 @@ const createCheck = async (): Promise<
   });
 };
 
+const configDescription = ({ lintConfigFileName }: ActionSettings) => {
+  const lintPath = Configuration.findConfigurationPath(lintConfigFileName);
+  const lintConfig = Configuration.findConfiguration(lintConfigFileName)
+    .results;
+
+  return [
+    "#### TSLint Configuration",
+    "",
+    "",
+    lintPath,
+    "",
+    "```json",
+    JSON.stringify(lintConfig, null, 2),
+    "```"
+  ].join("\n");
+};
+
 const updateCheck = async (
   id: number,
   results: LintResult,
-  tsLintConfiguration?: IConfigurationFile
+  settings: ActionSettings
 ) => {
   const pullRequest = ctx.payload.pull_request;
   if (!pullRequest) {
@@ -146,12 +163,6 @@ const updateCheck = async (
     annotationChunks.push(annotations.slice(i, i + 50));
   }
 
-  let runInfo = "#### TSLint Configuration";
-  runInfo += "\n\n";
-  runInfo += JSON.stringify(tsLintConfiguration, null, 2);
-  runInfo += "```json\n";
-  runInfo += "```";
-
   for (const chunk of annotationChunks) {
     await octokit.checks.update({
       owner: ctx.repo.owner,
@@ -164,7 +175,7 @@ const updateCheck = async (
         title: NAME,
         summary: `${results.errorCount} error(s).`,
         annotations: chunk,
-        text: runInfo
+        text: configDescription(settings)
       }
     });
   }
@@ -218,7 +229,7 @@ const run = async () => {
   }
 
   const results = linter.getResult();
-  await updateCheck(check.data.id, results, tslintConfiguration);
+  await updateCheck(check.data.id, results, settings);
 };
 
 run()
