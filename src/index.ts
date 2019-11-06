@@ -81,7 +81,6 @@ const updateCheck = async (id: number, results: LintResult) => {
   }
   const bodies: string[] = [];
 
-  console.log(results);
   const annotations = results.failures.map((failure: any) => {
     const annotation: Octokit.ChecksCreateParamsOutputAnnotations = {
       path: failure.getFileName(),
@@ -123,24 +122,36 @@ const updateCheck = async (id: number, results: LintResult) => {
     conclusion = results.errorCount > 0 ? "neutral" : "success";
   }
 
-  await octokit.checks.update({
-    owner: ctx.repo.owner,
-    repo: ctx.repo.repo,
-    check_run_id: id,
-    name: NAME,
-    status: "completed",
-    conclusion,
-    output: {
-      title: NAME,
-      summary: `${results.errorCount} error(s).`,
-      annotations
-    }
-  });
+  for (let i = 0; i < annotations.length; i += 50) {
+    const chunk = annotations.slice(i, i + 50);
+
+    await octokit.checks.update({
+      owner: ctx.repo.owner,
+      repo: ctx.repo.repo,
+      check_run_id: id,
+      name: NAME,
+      status: "completed",
+      conclusion,
+      output: {
+        title: NAME,
+        summary: `${results.errorCount} error(s).`,
+        annotations: chunk
+      }
+    });
+  }
 
   if (bodies.length > 0) {
-    const body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.\n\n${bodies.join(
-      "\n\n"
-    )}`;
+    const checkURL = `https://github.com/${ctx.repo.owner}/${ctx.repo.repo}/runs/${id})`;
+
+    const showCount = 5;
+
+    let body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.`;
+    body += "\n\n";
+    body += bodies.slice(0, showCount).join("\n");
+    if (bodies.length > showCount) {
+      body += `\n\nand [${bodies.length - showCount} more](${checkURL})`;
+    }
+
     await octokit.issues.createComment({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
