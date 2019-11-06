@@ -10,7 +10,7 @@ import {
   RuleSeverity
 } from "tslint";
 import Octokit from "@octokit/rest";
-import { fail } from "assert";
+import { IConfigurationFile } from "tslint/lib/configuration";
 
 const ctx = context;
 const NAME = "Strict TSLint";
@@ -74,7 +74,11 @@ const createCheck = async (): Promise<
   });
 };
 
-const updateCheck = async (id: number, results: LintResult) => {
+const updateCheck = async (
+  id: number,
+  results: LintResult,
+  tsLintConfiguration?: IConfigurationFile
+) => {
   const pullRequest = ctx.payload.pull_request;
   if (!pullRequest) {
     throw new Error("pull request was undefined");
@@ -142,6 +146,12 @@ const updateCheck = async (id: number, results: LintResult) => {
     annotationChunks.push(annotations.slice(i, i + 50));
   }
 
+  let runInfo = "#### TSLint Configuration";
+  runInfo += "\n\n";
+  runInfo += JSON.stringify(tsLintConfiguration, null, 2);
+  runInfo += "```json\n";
+  runInfo += "```";
+
   for (const chunk of annotationChunks) {
     await octokit.checks.update({
       owner: ctx.repo.owner,
@@ -153,7 +163,8 @@ const updateCheck = async (id: number, results: LintResult) => {
       output: {
         title: NAME,
         summary: `${results.errorCount} error(s).`,
-        annotations: chunk
+        annotations: chunk,
+        text: runInfo
       }
     });
   }
@@ -207,7 +218,7 @@ const run = async () => {
   }
 
   const results = linter.getResult();
-  await updateCheck(check.data.id, results);
+  await updateCheck(check.data.id, results, tslintConfiguration);
 };
 
 run()
