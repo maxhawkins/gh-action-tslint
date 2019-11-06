@@ -163,7 +163,7 @@ const updateCheck = async (id: number, results: LintResult) => {
 
     const showCount = 5;
 
-    let body = `TSLint found ${annotationCount} errors in files you edited:`;
+    let body = `TSLint found ${annotationCount} errors in files you edited. These errors may not have been caused by a change you made, but you should try to fix them anyway!`;
     body += "\n\n";
     body += bodies.slice(0, showCount).join("\n");
     if (annotationCount > showCount) {
