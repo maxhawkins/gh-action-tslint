@@ -81,7 +81,7 @@ const updateCheck = async (id: number, results: LintResult) => {
   }
   const bodies: string[] = [];
 
-  const annotations = results.failures.map((failure: any) => {
+  let annotations = results.failures.map((failure: any) => {
     const annotation: Octokit.ChecksCreateParamsOutputAnnotations = {
       path: failure.getFileName(),
       start_line: failure.getStartPosition().getLineAndCharacter().line,
@@ -122,9 +122,27 @@ const updateCheck = async (id: number, results: LintResult) => {
     conclusion = results.errorCount > 0 ? "neutral" : "success";
   }
 
-  for (let i = 0; i < annotations.length; i += 50) {
-    const chunk = annotations.slice(i, i + 50);
+  const maxAnnotations = 100;
+  const annotationCount = annotations.length;
 
+  if (annotationCount > maxAnnotations) {
+    annotations = annotations.slice(0, maxAnnotations);
+
+    annotations.push({
+      path: "",
+      start_line: 0,
+      end_line: 0,
+      annotation_level: "notice",
+      message: `Skipping ${annotationCount} more errors.`
+    });
+  }
+
+  const annotationChunks = [];
+  for (let i = 0; i < annotations.length; i += 50) {
+    annotationChunks.push(annotations.slice(i, i + 50));
+  }
+
+  for (const chunk of annotationChunks) {
     await octokit.checks.update({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
@@ -148,8 +166,8 @@ const updateCheck = async (id: number, results: LintResult) => {
     let body = `These linting rules are not necessarily related to your code changes. They're setup to bring awareness to code quality issues. Some of the links may be off by a line or two.`;
     body += "\n\n";
     body += bodies.slice(0, showCount).join("\n");
-    if (bodies.length > showCount) {
-      body += `\n\nand [${bodies.length - showCount} more](${checkURL})`;
+    if (annotationCount > showCount) {
+      body += `\n\nand [${annotationCount} more](${checkURL})`;
     }
 
     await octokit.issues.createComment({
